@@ -3,8 +3,9 @@ import SwiftUI
 struct AttemptResult: Identifiable {
     let id = UUID()
     let number: Int
-    let userAnswer: Bool?      
+    let userAnswer: Bool?
     let correctAnswer: Bool
+    let explanation: String
     let wasCorrect: Bool
 }
 
@@ -150,6 +151,7 @@ struct ContentView: View {
 
     func timeExpired() {
         let correctPrimeStatus = isPrime(currentNumber)
+        let explanation = buildExplanation(for: currentNumber, isPrimeResult: correctPrimeStatus)
 
         wrongAnswers += 1
         attempts += 1
@@ -160,6 +162,7 @@ struct ContentView: View {
                 number: currentNumber,
                 userAnswer: nil,
                 correctAnswer: correctPrimeStatus,
+                explanation: explanation,
                 wasCorrect: false
             )
         )
@@ -172,6 +175,7 @@ struct ContentView: View {
 
         let correctPrimeStatus = isPrime(currentNumber)
         let wasCorrect = (userSaysPrime == correctPrimeStatus)
+        let explanation = buildExplanation(for: currentNumber, isPrimeResult: correctPrimeStatus)
 
         if wasCorrect {
             correctAnswers += 1
@@ -188,6 +192,7 @@ struct ContentView: View {
                 number: currentNumber,
                 userAnswer: userSaysPrime,
                 correctAnswer: correctPrimeStatus,
+                explanation: explanation,
                 wasCorrect: wasCorrect
             )
         )
@@ -230,6 +235,48 @@ struct ContentView: View {
         }
 
         return true
+    }
+
+    func divisors(of number: Int) -> [Int] {
+        guard number > 0 else { return [] }
+
+        var result: [Int] = []
+
+        for i in 1...number {
+            if number % i == 0 {
+                result.append(i)
+            }
+        }
+
+        return result
+    }
+
+    func factorPairs(of number: Int) -> [String] {
+        guard number > 0 else { return [] }
+
+        var pairs: [String] = []
+
+        for i in 1...number {
+            if number % i == 0 {
+                let pair = number / i
+                if i <= pair {
+                    pairs.append("\(i) × \(pair)")
+                }
+            }
+        }
+
+        return pairs
+    }
+
+    func buildExplanation(for number: Int, isPrimeResult: Bool) -> String {
+        let divisorsList = divisors(of: number).map { String($0) }.joined(separator: ", ")
+        let factorPairsList = factorPairs(of: number).joined(separator: "; ")
+
+        if isPrimeResult {
+            return "\(number) is prime because it has exactly 2 divisors: 1 and \(number). Factor pairs: \(factorPairsList)."
+        } else {
+            return "\(number) is not prime because it has more than 2 divisors. Divisors: \(divisorsList). Factor pairs: \(factorPairsList)."
+        }
     }
 }
 
