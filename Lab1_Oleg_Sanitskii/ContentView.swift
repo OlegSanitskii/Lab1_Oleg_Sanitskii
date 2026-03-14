@@ -88,6 +88,11 @@ struct ContentView: View {
         }
 
         attempts += 1
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            currentNumber = Int.random(in: 2...100)
+            resultIcon = nil
+        }
     }
 
     func isPrime(_ number: Int) -> Bool {
