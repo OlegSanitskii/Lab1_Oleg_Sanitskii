@@ -5,6 +5,7 @@ struct ContentView: View {
     @State private var currentNumber = Int.random(in: 2...100)
     @State private var correctAnswers = 0
     @State private var wrongAnswers = 0
+    @State private var attempts = 0
 
     var body: some View {
         VStack(spacing: 24) {
@@ -59,6 +60,7 @@ struct ContentView: View {
             VStack(spacing: 8) {
                 Text("Correct: \(correctAnswers)")
                 Text("Wrong: \(wrongAnswers)")
+                Text("Attempt: \(attempts)/10")
             }
             .font(.headline)
         }
@@ -73,6 +75,8 @@ struct ContentView: View {
         } else {
             wrongAnswers += 1
         }
+
+        attempts += 1
     }
 
     func isPrime(_ number: Int) -> Bool {
