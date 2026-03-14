@@ -1,5 +1,13 @@
 import SwiftUI
 
+struct AttemptResult: Identifiable {
+    let id = UUID()
+    let number: Int
+    let userAnswer: Bool?      
+    let correctAnswer: Bool
+    let wasCorrect: Bool
+}
+
 struct ContentView: View {
     
     @State private var currentNumber = Int.random(in: 2...100)
@@ -12,6 +20,7 @@ struct ContentView: View {
     @State private var gameTimer: Timer? = nil
 
     @State private var showSummary = false
+    @State private var history: [AttemptResult] = []
 
     var body: some View {
         VStack(spacing: 24) {
@@ -140,9 +149,21 @@ struct ContentView: View {
     }
 
     func timeExpired() {
+        let correctPrimeStatus = isPrime(currentNumber)
+
         wrongAnswers += 1
         attempts += 1
         resultIcon = "xmark.circle.fill"
+
+        history.append(
+            AttemptResult(
+                number: currentNumber,
+                userAnswer: nil,
+                correctAnswer: correctPrimeStatus,
+                wasCorrect: false
+            )
+        )
+
         goToNextRound()
     }
 
@@ -150,8 +171,9 @@ struct ContentView: View {
         stopGameTimer()
 
         let correctPrimeStatus = isPrime(currentNumber)
+        let wasCorrect = (userSaysPrime == correctPrimeStatus)
 
-        if userSaysPrime == correctPrimeStatus {
+        if wasCorrect {
             correctAnswers += 1
             resultIcon = "checkmark.circle.fill"
         } else {
@@ -160,6 +182,16 @@ struct ContentView: View {
         }
 
         attempts += 1
+
+        history.append(
+            AttemptResult(
+                number: currentNumber,
+                userAnswer: userSaysPrime,
+                correctAnswer: correctPrimeStatus,
+                wasCorrect: wasCorrect
+            )
+        )
+
         goToNextRound()
     }
 
@@ -183,6 +215,7 @@ struct ContentView: View {
         attempts = 0
         resultIcon = nil
         countdown = 5
+        history.removeAll()
         startGameTimer()
     }
 
