@@ -3,14 +3,21 @@ import SwiftUI
 struct AttemptResult: Identifiable {
     let id = UUID()
     let number: Int
-    let userAnswer: Bool?
+    let userAnswer: Bool?      
     let correctAnswer: Bool
     let explanation: String
     let wasCorrect: Bool
 }
 
+enum AppScreen {
+    case mainMenu
+    case playing
+}
+
 struct ContentView: View {
     
+    @State private var currentScreen: AppScreen = .mainMenu
+
     @State private var currentNumber = Int.random(in: 2...100)
     @State private var correctAnswers = 0
     @State private var wrongAnswers = 0
@@ -24,14 +31,76 @@ struct ContentView: View {
     @State private var history: [AttemptResult] = []
 
     var body: some View {
-        VStack(spacing: 24) {
-            HStack {
-                Spacer()
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
 
-                Text("Time: \(countdown)")
-                    .font(.headline)
+            switch currentScreen {
+            case .mainMenu:
+                mainMenuView
+
+            case .playing:
+                gameView
             }
+        }
+        .sheet(isPresented: $showSummary) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Game Summary")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
 
+                    Text("Correct: \(correctAnswers)")
+                        .font(.title2)
+
+                    Text("Wrong: \(wrongAnswers)")
+                        .font(.title2)
+
+                    Divider()
+
+                    ForEach(Array(history.enumerated()), id: \.element.id) { index, item in
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Attempt \(index + 1)")
+                                    .font(.headline)
+
+                                Spacer()
+
+                                Image(systemName: item.wasCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                    .foregroundColor(item.wasCorrect ? .green : .red)
+                            }
+
+                            Text("Number: \(item.number)")
+                            Text("Your answer: \(userAnswerText(item.userAnswer))")
+                            Text("Correct answer: \(item.correctAnswer ? "Prime" : "Not Prime")")
+                            Text("Explanation: \(item.explanation)")
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(12)
+                    }
+
+                    Button("Start New Game") {
+                        resetGame()
+                        showSummary = false
+                        currentScreen = .mainMenu
+                    }
+                    .font(.headline)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .padding()
+            }
+        }
+    }
+
+    var mainMenuView: some View {
+        VStack(spacing: 24) {
             Spacer()
 
             Image(systemName: "number.circle.fill")
@@ -44,11 +113,41 @@ struct ContentView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
 
-            Text("Choose whether the number is prime or not.")
+            Text("Choose whether each number is prime or not before time runs out.")
                 .font(.title3)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
+
+            Button(action: {
+                resetGame()
+                currentScreen = .playing
+            }) {
+                Label("Start Game", systemImage: "play.fill")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(14)
+            }
+            .padding(.horizontal, 30)
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    var gameView: some View {
+        VStack(spacing: 24) {
+            HStack {
+                Spacer()
+
+                Text("Time: \(countdown)")
+                    .font(.headline)
+            }
+
+            Spacer()
 
             Text("\(currentNumber)")
                 .font(.system(size: 72, weight: .bold, design: .rounded))
@@ -101,59 +200,6 @@ struct ContentView: View {
         }
         .onDisappear {
             stopGameTimer()
-        }
-        .sheet(isPresented: $showSummary) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Game Summary")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-
-                    Text("Correct: \(correctAnswers)")
-                        .font(.title2)
-
-                    Text("Wrong: \(wrongAnswers)")
-                        .font(.title2)
-
-                    Divider()
-
-                    ForEach(Array(history.enumerated()), id: \.element.id) { index, item in
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Attempt \(index + 1)")
-                                    .font(.headline)
-
-                                Spacer()
-
-                                Image(systemName: item.wasCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                    .foregroundColor(item.wasCorrect ? .green : .red)
-                            }
-
-                            Text("Number: \(item.number)")
-                            Text("Your answer: \(userAnswerText(item.userAnswer))")
-                            Text("Correct answer: \(item.correctAnswer ? "Prime" : "Not Prime")")
-                            Text("Explanation: \(item.explanation)")
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
-                    }
-
-                    Button("Start New Game") {
-                        resetGame()
-                        showSummary = false
-                    }
-                    .font(.headline)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                }
-                .padding()
-            }
         }
     }
 
@@ -256,7 +302,6 @@ struct ContentView: View {
         resultIcon = nil
         countdown = 5
         history.removeAll()
-        startGameTimer()
     }
 
     func isPrime(_ number: Int) -> Bool {
