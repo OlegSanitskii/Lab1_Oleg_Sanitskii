@@ -8,8 +8,18 @@ struct ContentView: View {
     @State private var attempts = 0
     @State private var resultIcon: String? = nil
 
+    @State private var countdown = 5
+    @State private var gameTimer: Timer? = nil
+
     var body: some View {
         VStack(spacing: 24) {
+            HStack {
+                Spacer()
+
+                Text("Time: \(countdown)")
+                    .font(.headline)
+            }
+
             Spacer()
 
             Image(systemName: "number.circle.fill")
@@ -74,6 +84,28 @@ struct ContentView: View {
             .font(.headline)
         }
         .padding()
+        .onAppear {
+            startGameTimer()
+        }
+        .onDisappear {
+            stopGameTimer()
+        }
+    }
+
+    func startGameTimer() {
+        stopGameTimer()
+        countdown = 5
+
+        gameTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            if countdown > 0 {
+                countdown -= 1
+            }
+        }
+    }
+
+    func stopGameTimer() {
+        gameTimer?.invalidate()
+        gameTimer = nil
     }
 
     func checkAnswer(userSaysPrime: Bool) {
