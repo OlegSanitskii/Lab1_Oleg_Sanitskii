@@ -103,30 +103,65 @@ struct ContentView: View {
             stopGameTimer()
         }
         .sheet(isPresented: $showSummary) {
-            VStack(spacing: 20) {
-                Text("Game Summary")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Game Summary")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
 
-                Text("Correct: \(correctAnswers)")
-                    .font(.title2)
+                    Text("Correct: \(correctAnswers)")
+                        .font(.title2)
 
-                Text("Wrong: \(wrongAnswers)")
-                    .font(.title2)
+                    Text("Wrong: \(wrongAnswers)")
+                        .font(.title2)
 
-                Button("Start New Game") {
-                    resetGame()
-                    showSummary = false
+                    Divider()
+
+                    ForEach(Array(history.enumerated()), id: \.element.id) { index, item in
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Attempt \(index + 1)")
+                                    .font(.headline)
+
+                                Spacer()
+
+                                Image(systemName: item.wasCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                    .foregroundColor(item.wasCorrect ? .green : .red)
+                            }
+
+                            Text("Number: \(item.number)")
+                            Text("Your answer: \(userAnswerText(item.userAnswer))")
+                            Text("Correct answer: \(item.correctAnswer ? "Prime" : "Not Prime")")
+                            Text("Explanation: \(item.explanation)")
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(12)
+                    }
+
+                    Button("Start New Game") {
+                        resetGame()
+                        showSummary = false
+                    }
+                    .font(.headline)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
                 }
-                .font(.headline)
                 .padding()
-                .frame(maxWidth: .infinity)
-                .background(.blue)
-                .foregroundColor(.white)
-                .cornerRadius(12)
-                .padding(.horizontal)
             }
-            .padding()
+        }
+    }
+
+    func userAnswerText(_ answer: Bool?) -> String {
+        if let answer = answer {
+            return answer ? "Prime" : "Not Prime"
+        } else {
+            return "No answer (time expired)"
         }
     }
 
