@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var correctAnswers = 0
     @State private var wrongAnswers = 0
     @State private var attempts = 0
+    @State private var resultIcon: String? = nil
 
     var body: some View {
         VStack(spacing: 24) {
@@ -55,6 +56,14 @@ struct ContentView: View {
             }
             .padding(.horizontal)
 
+            if let icon = resultIcon {
+                Image(systemName: icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 110, height: 110)
+                    .foregroundColor(icon == "checkmark.circle.fill" ? .green : .red)
+            }
+
             Spacer()
 
             VStack(spacing: 8) {
@@ -72,8 +81,10 @@ struct ContentView: View {
 
         if userSaysPrime == correctPrimeStatus {
             correctAnswers += 1
+            resultIcon = "checkmark.circle.fill"
         } else {
             wrongAnswers += 1
+            resultIcon = "xmark.circle.fill"
         }
 
         attempts += 1
