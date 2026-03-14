@@ -11,6 +11,8 @@ struct ContentView: View {
     @State private var countdown = 5
     @State private var gameTimer: Timer? = nil
 
+    @State private var showSummary = false
+
     var body: some View {
         VStack(spacing: 24) {
             HStack {
@@ -90,6 +92,32 @@ struct ContentView: View {
         .onDisappear {
             stopGameTimer()
         }
+        .sheet(isPresented: $showSummary) {
+            VStack(spacing: 20) {
+                Text("Game Summary")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+
+                Text("Correct: \(correctAnswers)")
+                    .font(.title2)
+
+                Text("Wrong: \(wrongAnswers)")
+                    .font(.title2)
+
+                Button("Start New Game") {
+                    resetGame()
+                    showSummary = false
+                }
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(.blue)
+                .foregroundColor(.white)
+                .cornerRadius(12)
+                .padding(.horizontal)
+            }
+            .padding()
+        }
     }
 
     func startGameTimer() {
@@ -137,10 +165,25 @@ struct ContentView: View {
 
     func goToNextRound() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            currentNumber = Int.random(in: 2...100)
-            resultIcon = nil
-            startGameTimer()
+            if attempts >= 10 {
+                showSummary = true
+            } else {
+                currentNumber = Int.random(in: 2...100)
+                resultIcon = nil
+                startGameTimer()
+            }
         }
+    }
+
+    func resetGame() {
+        stopGameTimer()
+        currentNumber = Int.random(in: 2...100)
+        correctAnswers = 0
+        wrongAnswers = 0
+        attempts = 0
+        resultIcon = nil
+        countdown = 5
+        startGameTimer()
     }
 
     func isPrime(_ number: Int) -> Bool {
