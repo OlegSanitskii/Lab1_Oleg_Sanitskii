@@ -9,6 +9,14 @@ struct AttemptResult: Identifiable {
     let wasCorrect: Bool
 }
 
+struct GameRecord: Identifiable {
+    let id = UUID()
+    let date: Date
+    let correctAnswers: Int
+    let wrongAnswers: Int
+    let attempts: [AttemptResult]
+}
+
 enum AppScreen {
     case mainMenu
     case readyCountdown
@@ -33,6 +41,7 @@ struct ContentView: View {
 
     @State private var showSummary = false
     @State private var history: [AttemptResult] = []
+    @State private var gameRecords: [GameRecord] = []
 
     var body: some View {
         ZStack {
