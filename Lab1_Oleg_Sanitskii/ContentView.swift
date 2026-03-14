@@ -97,8 +97,11 @@ struct ContentView: View {
         countdown = 5
 
         gameTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            if countdown > 0 {
+            if countdown > 1 {
                 countdown -= 1
+            } else {
+                stopGameTimer()
+                timeExpired()
             }
         }
     }
@@ -108,7 +111,21 @@ struct ContentView: View {
         gameTimer = nil
     }
 
+    func timeExpired() {
+        wrongAnswers += 1
+        attempts += 1
+        resultIcon = "xmark.circle.fill"
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            currentNumber = Int.random(in: 2...100)
+            resultIcon = nil
+            startGameTimer()
+        }
+    }
+
     func checkAnswer(userSaysPrime: Bool) {
+        stopGameTimer()
+
         let correctPrimeStatus = isPrime(currentNumber)
 
         if userSaysPrime == correctPrimeStatus {
@@ -124,6 +141,7 @@ struct ContentView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             currentNumber = Int.random(in: 2...100)
             resultIcon = nil
+            startGameTimer()
         }
     }
 
