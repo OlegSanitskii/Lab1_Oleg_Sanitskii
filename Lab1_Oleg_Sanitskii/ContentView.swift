@@ -28,6 +28,30 @@ struct ContentView: View {
                 .font(.system(size: 72, weight: .bold, design: .rounded))
                 .padding(.top, 20)
 
+            Button(action: {
+                // Prime action will be added later
+            }) {
+                Label("Prime", systemImage: "checkmark.seal")
+                    .font(.title2)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.blue.opacity(0.15))
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal)
+
+            Button(action: {
+                // Not Prime action will be added later
+            }) {
+                Label("Not Prime", systemImage: "xmark.seal")
+                    .font(.title2)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.orange.opacity(0.15))
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal)
+
             Spacer()
         }
         .padding()
