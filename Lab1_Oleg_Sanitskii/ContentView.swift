@@ -3,7 +3,7 @@ import SwiftUI
 struct AttemptResult: Identifiable {
     let id = UUID()
     let number: Int
-    let userAnswer: Bool?      
+    let userAnswer: Bool?
     let correctAnswer: Bool
     let explanation: String
     let wasCorrect: Bool
@@ -355,6 +355,14 @@ struct ContentView: View {
     func goToNextRound() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             if attempts >= 10 {
+                let record = GameRecord(
+                    date: Date(),
+                    correctAnswers: correctAnswers,
+                    wrongAnswers: wrongAnswers,
+                    attempts: history
+                )
+
+                gameRecords.append(record)
                 showSummary = true
             } else {
                 currentNumber = Int.random(in: 2...100)
