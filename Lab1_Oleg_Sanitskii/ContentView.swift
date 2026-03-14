@@ -11,6 +11,7 @@ struct AttemptResult: Identifiable {
 
 enum AppScreen {
     case mainMenu
+    case readyCountdown
     case playing
 }
 
@@ -25,7 +26,10 @@ struct ContentView: View {
     @State private var resultIcon: String? = nil
 
     @State private var countdown = 5
+    @State private var readyCountdown = 5
+
     @State private var gameTimer: Timer? = nil
+    @State private var readyTimer: Timer? = nil
 
     @State private var showSummary = false
     @State private var history: [AttemptResult] = []
@@ -38,6 +42,9 @@ struct ContentView: View {
             switch currentScreen {
             case .mainMenu:
                 mainMenuView
+
+            case .readyCountdown:
+                readyView
 
             case .playing:
                 gameView
@@ -97,6 +104,9 @@ struct ContentView: View {
                 .padding()
             }
         }
+        .onDisappear {
+            stopAllTimers()
+        }
     }
 
     var mainMenuView: some View {
@@ -121,7 +131,7 @@ struct ContentView: View {
 
             Button(action: {
                 resetGame()
-                currentScreen = .playing
+                startReadyCountdown()
             }) {
                 Label("Start Game", systemImage: "play.fill")
                     .font(.headline)
@@ -132,6 +142,33 @@ struct ContentView: View {
                     .cornerRadius(14)
             }
             .padding(.horizontal, 30)
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    var readyView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: "hourglass")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 80, height: 80)
+                .foregroundColor(.orange)
+
+            Text("Get Ready")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+
+            Text("\(readyCountdown)")
+                .font(.system(size: 90, weight: .heavy, design: .rounded))
+                .foregroundColor(.blue)
+
+            Text("The game will begin in a moment...")
+                .font(.title3)
+                .foregroundColor(.secondary)
 
             Spacer()
         }
@@ -203,11 +240,18 @@ struct ContentView: View {
         }
     }
 
-    func userAnswerText(_ answer: Bool?) -> String {
-        if let answer = answer {
-            return answer ? "Prime" : "Not Prime"
-        } else {
-            return "No answer (time expired)"
+    func startReadyCountdown() {
+        stopAllTimers()
+        readyCountdown = 5
+        currentScreen = .readyCountdown
+
+        readyTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            if readyCountdown > 1 {
+                readyCountdown -= 1
+            } else {
+                stopReadyTimer()
+                currentScreen = .playing
+            }
         }
     }
 
@@ -228,6 +272,24 @@ struct ContentView: View {
     func stopGameTimer() {
         gameTimer?.invalidate()
         gameTimer = nil
+    }
+
+    func stopReadyTimer() {
+        readyTimer?.invalidate()
+        readyTimer = nil
+    }
+
+    func stopAllTimers() {
+        stopGameTimer()
+        stopReadyTimer()
+    }
+
+    func userAnswerText(_ answer: Bool?) -> String {
+        if let answer = answer {
+            return answer ? "Prime" : "Not Prime"
+        } else {
+            return "No answer (time expired)"
+        }
     }
 
     func timeExpired() {
@@ -294,13 +356,14 @@ struct ContentView: View {
     }
 
     func resetGame() {
-        stopGameTimer()
+        stopAllTimers()
         currentNumber = Int.random(in: 2...100)
         correctAnswers = 0
         wrongAnswers = 0
         attempts = 0
         resultIcon = nil
         countdown = 5
+        readyCountdown = 5
         history.removeAll()
     }
 
