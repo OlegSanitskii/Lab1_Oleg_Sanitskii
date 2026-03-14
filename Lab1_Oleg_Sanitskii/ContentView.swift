@@ -29,7 +29,7 @@ struct ContentView: View {
                 .padding(.top, 20)
 
             Button(action: {
-                // Prime action will be added later
+                checkAnswer(userSaysPrime: true)
             }) {
                 Label("Prime", systemImage: "checkmark.seal")
                     .font(.title2)
@@ -41,7 +41,7 @@ struct ContentView: View {
             .padding(.horizontal)
 
             Button(action: {
-                // Not Prime action will be added later
+                checkAnswer(userSaysPrime: false)
             }) {
                 Label("Not Prime", systemImage: "xmark.seal")
                     .font(.title2)
@@ -55,6 +55,11 @@ struct ContentView: View {
             Spacer()
         }
         .padding()
+    }
+
+    func checkAnswer(userSaysPrime: Bool) {
+        let correctPrimeStatus = isPrime(currentNumber)
+        let _ = (userSaysPrime == correctPrimeStatus)
     }
 
     func isPrime(_ number: Int) -> Bool {
