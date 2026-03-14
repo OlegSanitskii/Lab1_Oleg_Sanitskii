@@ -21,6 +21,7 @@ enum AppScreen {
     case mainMenu
     case readyCountdown
     case playing
+    case statistics
 }
 
 struct ContentView: View {
@@ -57,6 +58,9 @@ struct ContentView: View {
 
             case .playing:
                 gameView
+
+            case .statistics:
+                statisticsView
             }
         }
         .sheet(isPresented: $showSummary) {
@@ -138,17 +142,31 @@ struct ContentView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
 
-            Button(action: {
-                resetGame()
-                startReadyCountdown()
-            }) {
-                Label("Start Game", systemImage: "play.fill")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(14)
+            VStack(spacing: 14) {
+                Button(action: {
+                    resetGame()
+                    startReadyCountdown()
+                }) {
+                    Label("Start Game", systemImage: "play.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(14)
+                }
+
+                Button(action: {
+                    currentScreen = .statistics
+                }) {
+                    Label("View Statistics", systemImage: "chart.bar.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(14)
+                }
             }
             .padding(.horizontal, 30)
 
@@ -247,6 +265,43 @@ struct ContentView: View {
         .onDisappear {
             stopGameTimer()
         }
+    }
+
+    var statisticsView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            Text("Statistics")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+
+            Text("Games Played: \(gameRecords.count)")
+                .font(.title2)
+
+            Text("Total Correct: \(gameRecords.reduce(0) { $0 + $1.correctAnswers })")
+                .font(.title3)
+                .foregroundColor(.green)
+
+            Text("Total Wrong: \(gameRecords.reduce(0) { $0 + $1.wrongAnswers })")
+                .font(.title3)
+                .foregroundColor(.red)
+
+            Spacer()
+
+            Button(action: {
+                currentScreen = .mainMenu
+            }) {
+                Label("Back to Main Menu", systemImage: "house.fill")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal)
+        }
+        .padding()
     }
 
     func startReadyCountdown() {
