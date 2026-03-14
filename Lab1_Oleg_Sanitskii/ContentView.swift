@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AttemptResult: Identifiable {
+struct AttemptResult: Identifiable, Hashable {
     let id = UUID()
     let number: Int
     let userAnswer: Bool?
@@ -9,7 +9,7 @@ struct AttemptResult: Identifiable {
     let wasCorrect: Bool
 }
 
-struct GameRecord: Identifiable {
+struct GameRecord: Identifiable, Hashable {
     let id = UUID()
     let date: Date
     let correctAnswers: Int
@@ -43,82 +43,68 @@ struct ContentView: View {
     @State private var showSummary = false
     @State private var history: [AttemptResult] = []
     @State private var gameRecords: [GameRecord] = []
+    @State private var selectedGameRecord: GameRecord? = nil
 
     var body: some View {
-        ZStack {
-            Color(.systemBackground)
-                .ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
 
-            switch currentScreen {
-            case .mainMenu:
-                mainMenuView
+                switch currentScreen {
+                case .mainMenu:
+                    mainMenuView
 
-            case .readyCountdown:
-                readyView
+                case .readyCountdown:
+                    readyView
 
-            case .playing:
-                gameView
+                case .playing:
+                    gameView
 
-            case .statistics:
-                statisticsView
+                case .statistics:
+                    statisticsView
+                }
             }
-        }
-        .sheet(isPresented: $showSummary) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Game Summary")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+            .navigationDestination(item: $selectedGameRecord) { record in
+                StoredGameSummaryView(record: record)
+            }
+            .sheet(isPresented: $showSummary) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Game Summary")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
 
-                    Text("Correct: \(correctAnswers)")
-                        .font(.title2)
+                        Text("Correct: \(correctAnswers)")
+                            .font(.title2)
 
-                    Text("Wrong: \(wrongAnswers)")
-                        .font(.title2)
+                        Text("Wrong: \(wrongAnswers)")
+                            .font(.title2)
 
-                    Divider()
+                        Divider()
 
-                    ForEach(Array(history.enumerated()), id: \.element.id) { index, item in
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Attempt \(index + 1)")
-                                    .font(.headline)
-
-                                Spacer()
-
-                                Image(systemName: item.wasCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                    .foregroundColor(item.wasCorrect ? .green : .red)
-                            }
-
-                            Text("Number: \(item.number)")
-                            Text("Your answer: \(userAnswerText(item.userAnswer))")
-                            Text("Correct answer: \(item.correctAnswer ? "Prime" : "Not Prime")")
-                            Text("Explanation: \(item.explanation)")
-                                .fixedSize(horizontal: false, vertical: true)
+                        ForEach(Array(history.enumerated()), id: \.element.id) { index, item in
+                            AttemptCardView(index: index, item: item)
                         }
+
+                        Button("Start New Game") {
+                            resetGame()
+                            showSummary = false
+                            currentScreen = .mainMenu
+                        }
+                        .font(.headline)
                         .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.gray.opacity(0.1))
+                        .frame(maxWidth: .infinity)
+                        .background(.blue)
+                        .foregroundColor(.white)
                         .cornerRadius(12)
                     }
-
-                    Button("Start New Game") {
-                        resetGame()
-                        showSummary = false
-                        currentScreen = .mainMenu
-                    }
-                    .font(.headline)
                     .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
                 }
-                .padding()
             }
-        }
-        .onDisappear {
-            stopAllTimers()
+            .onDisappear {
+                stopAllTimers()
+            }
         }
     }
 
@@ -286,6 +272,19 @@ struct ContentView: View {
                 .font(.title3)
                 .foregroundColor(.red)
 
+            if !gameRecords.isEmpty {
+                Text("Game History")
+                    .font(.headline)
+
+                ForEach(gameRecords) { record in
+                    Button(action: {
+                        selectedGameRecord = record
+                    }) {
+                        Text(record.date.formatted(date: .abbreviated, time: .shortened))
+                    }
+                }
+            }
+
             Spacer()
 
             Button(action: {
@@ -346,14 +345,6 @@ struct ContentView: View {
     func stopAllTimers() {
         stopGameTimer()
         stopReadyTimer()
-    }
-
-    func userAnswerText(_ answer: Bool?) -> String {
-        if let answer = answer {
-            return answer ? "Prime" : "Not Prime"
-        } else {
-            return "No answer (time expired)"
-        }
     }
 
     func timeExpired() {
@@ -492,6 +483,76 @@ struct ContentView: View {
         } else {
             return "\(number) is not prime because it has more than 2 divisors. Divisors: \(divisorsList). Factor pairs: \(factorPairsList)."
         }
+    }
+}
+
+struct AttemptCardView: View {
+    let index: Int
+    let item: AttemptResult
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Attempt \(index + 1)")
+                    .font(.headline)
+
+                Spacer()
+
+                Image(systemName: item.wasCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .foregroundColor(item.wasCorrect ? .green : .red)
+            }
+
+            Text("Number: \(item.number)")
+            Text("Your answer: \(userAnswerText(item.userAnswer))")
+            Text("Correct answer: \(item.correctAnswer ? "Prime" : "Not Prime")")
+            Text("Explanation: \(item.explanation)")
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(12)
+    }
+
+    func userAnswerText(_ answer: Bool?) -> String {
+        if let answer = answer {
+            return answer ? "Prime" : "Not Prime"
+        } else {
+            return "No answer (time expired)"
+        }
+    }
+}
+
+struct StoredGameSummaryView: View {
+    let record: GameRecord
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Saved Game")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+
+                Text(record.date.formatted(date: .complete, time: .shortened))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Text("Correct: \(record.correctAnswers)")
+                    .font(.title2)
+
+                Text("Wrong: \(record.wrongAnswers)")
+                    .font(.title2)
+
+                Divider()
+
+                ForEach(Array(record.attempts.enumerated()), id: \.element.id) { index, item in
+                    AttemptCardView(index: index, item: item)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Saved Summary")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
