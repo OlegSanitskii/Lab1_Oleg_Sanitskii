@@ -1,3 +1,4 @@
+
 import SwiftUI
 
 struct AttemptResult: Identifiable, Hashable {
@@ -254,53 +255,77 @@ struct ContentView: View {
     }
 
     var statisticsView: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                Text("Statistics")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
 
-            Text("Statistics")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                Text("Games Played: \(gameRecords.count)")
+                    .font(.title2)
 
-            Text("Games Played: \(gameRecords.count)")
-                .font(.title2)
+                Text("Total Correct: \(gameRecords.reduce(0) { $0 + $1.correctAnswers })")
+                    .font(.title3)
+                    .foregroundColor(.green)
 
-            Text("Total Correct: \(gameRecords.reduce(0) { $0 + $1.correctAnswers })")
-                .font(.title3)
-                .foregroundColor(.green)
+                Text("Total Wrong: \(gameRecords.reduce(0) { $0 + $1.wrongAnswers })")
+                    .font(.title3)
+                    .foregroundColor(.red)
 
-            Text("Total Wrong: \(gameRecords.reduce(0) { $0 + $1.wrongAnswers })")
-                .font(.title3)
-                .foregroundColor(.red)
+                if !gameRecords.isEmpty {
+                    Text("Game History")
+                        .font(.headline)
 
-            if !gameRecords.isEmpty {
-                Text("Game History")
-                    .font(.headline)
+                    ForEach(Array(gameRecords.enumerated().reversed()), id: \.element.id) { index, record in
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Game \(gameRecords.count - index)")
+                                .font(.headline)
 
-                ForEach(gameRecords) { record in
-                    Button(action: {
-                        selectedGameRecord = record
-                    }) {
-                        Text(record.date.formatted(date: .abbreviated, time: .shortened))
+                            Text(record.date.formatted(date: .abbreviated, time: .shortened))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            HStack(spacing: 16) {
+                                Label("\(record.correctAnswers)", systemImage: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+
+                                Label("\(record.wrongAnswers)", systemImage: "xmark.circle.fill")
+                                    .foregroundColor(.red)
+                            }
+
+                            Button(action: {
+                                selectedGameRecord = record
+                            }) {
+                                Label("View Details", systemImage: "doc.text.magnifyingglass")
+                                    .font(.subheadline.weight(.semibold))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(Color.blue.opacity(0.12))
+                                    .foregroundColor(.blue)
+                                    .cornerRadius(10)
+                            }
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(18)
                     }
                 }
-            }
 
-            Spacer()
-
-            Button(action: {
-                currentScreen = .mainMenu
-            }) {
-                Label("Back to Main Menu", systemImage: "house.fill")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
+                Button(action: {
+                    currentScreen = .mainMenu
+                }) {
+                    Label("Back to Main Menu", systemImage: "house.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+                .padding(.top, 8)
             }
-            .padding(.horizontal)
+            .padding()
         }
-        .padding()
     }
 
     func startReadyCountdown() {
