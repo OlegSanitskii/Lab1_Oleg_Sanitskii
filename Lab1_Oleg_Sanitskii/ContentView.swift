@@ -3,6 +3,8 @@ import SwiftUI
 struct ContentView: View {
     
     @State private var currentNumber = Int.random(in: 2...100)
+    @State private var correctAnswers = 0
+    @State private var wrongAnswers = 0
 
     var body: some View {
         VStack(spacing: 24) {
@@ -53,13 +55,24 @@ struct ContentView: View {
             .padding(.horizontal)
 
             Spacer()
+
+            VStack(spacing: 8) {
+                Text("Correct: \(correctAnswers)")
+                Text("Wrong: \(wrongAnswers)")
+            }
+            .font(.headline)
         }
         .padding()
     }
 
     func checkAnswer(userSaysPrime: Bool) {
         let correctPrimeStatus = isPrime(currentNumber)
-        let _ = (userSaysPrime == correctPrimeStatus)
+
+        if userSaysPrime == correctPrimeStatus {
+            correctAnswers += 1
+        } else {
+            wrongAnswers += 1
+        }
     }
 
     func isPrime(_ number: Int) -> Bool {
