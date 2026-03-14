@@ -115,12 +115,7 @@ struct ContentView: View {
         wrongAnswers += 1
         attempts += 1
         resultIcon = "xmark.circle.fill"
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            currentNumber = Int.random(in: 2...100)
-            resultIcon = nil
-            startGameTimer()
-        }
+        goToNextRound()
     }
 
     func checkAnswer(userSaysPrime: Bool) {
@@ -137,7 +132,10 @@ struct ContentView: View {
         }
 
         attempts += 1
+        goToNextRound()
+    }
 
+    func goToNextRound() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             currentNumber = Int.random(in: 2...100)
             resultIcon = nil
